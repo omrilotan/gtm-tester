@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+ul {
+    list-style: none;
+    padding: 0;
+    border: 1px solid #ccc;
+    li:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+}
+        </style>
+    </head>
+    <body>
+        <h1>Test</h1>
+        <p>Test page for GTM container.</p>
+        <ul></ul>
+        <script>
+(async() => {
+    const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const queryParams = new URLSearchParams(window.location.search);
+    const container = queryParams.get('container');
+    const delay = Number(queryParams.get('delay')) || 0;
+
+    function insertListItem(text) {
+        const listItem = document.createElement('li');
+        listItem.appendChild(document.createTextNode(text));
+        const list = document.querySelector('ul');
+        const firstItem = list.querySelector('li');
+        if (firstItem) {
+            list.insertBefore(listItem, firstItem);
+        } else {
+            list.appendChild(listItem);
+        }
+    }
+
+    if (container === null) {
+        insertListItem('GTM container ID not provided. Please provide a container ID in the query string: ?container=GTM-#########\n');
+        return;
+    }
+    await wait(delay);
+    window.dataLayer = window.dataLayer || [
+        {
+            'gtm.start': new Date().getTime(),
+            event: 'gtm.js'
+        }
+    ];
+    let { push } = window.dataLayer;
+    
+    Object.defineProperty(window.dataLayer, 'push', {
+        value: function(...args) {
+            insertListItem(JSON.stringify(args) + '\n');
+            return push.apply(this, arguments);
+        }
+    });
+    const script =  document.createElement('script');
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${container}`; // GTM-#########
+    script.async = true;
+    document.querySelector('head').appendChild(script);
+})();
+        </script>
+    </body>
+</html>
